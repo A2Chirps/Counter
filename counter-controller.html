@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counter Controller</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0520;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    color: #e9d5ff;
+  }
+  .title { font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #c084fc; }
+  .display {
+    background: rgba(30, 10, 60, 0.88);
+    border: 1.5px solid rgba(167, 139, 250, 0.4);
+    border-radius: 18px;
+    padding: 22px 56px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .display-label { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #c084fc; }
+  .display-num { font-size: 80px; font-weight: 800; color: #f0e6ff; line-height: 1; transition: transform 0.1s ease; }
+  .display-num.bump { transform: scale(1.15); }
+  .controls { display: flex; gap: 16px; }
+  .btn {
+    width: 70px; height: 70px; border-radius: 50%;
+    border: 2px solid #7c3aed; background: #1e0b38; color: #e9d5ff;
+    font-size: 36px; cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; user-select: none;
+  }
+  .btn:hover { background: #3b0764; border-color: #a855f7; }
+  .btn:active { transform: scale(0.92); }
+  .reset-btn {
+    background: transparent; border: 1px solid #4c1d9566; color: #7c3aed;
+    padding: 8px 22px; border-radius: 8px; font-size: 12px; font-family: inherit;
+    cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: #7c3aed; color: #c084fc; }
+  .status { font-size: 11px; color: #a78bfa99; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="title">Counter Controller</div>
+<div class="display">
+  <div class="display-label">3's Made</div>
+  <div class="display-num" id="num">0</div>
+</div>
+<div class="controls">
+  <button class="btn" id="btnMinus">−</button>
+  <button class="btn" id="btnPlus">+</button>
+</div>
+<button class="reset-btn" id="btnReset">↺ Reset to 0</button>
+<div class="status" id="status">Connecting...</div>
+
+<!-- PASTE YOUR FIREBASE CONFIG HERE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBsjUq6mvCwKGr9n64Oo7pGft8NqGcUIaU",
+    authDomain: "website-firebase-17385.firebaseapp.com",
+    databaseURL: "https://website-firebase-17385-default-rtdb.firebaseio.com",
+    projectId: "website-firebase-17385",
+    storageBucket: "website-firebase-17385.firebasestorage.app",
+    messagingSenderId: "934443626587",
+    appId: "1:934443626587:web:12d642d7d1fb4d7cc1cf7e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const counterRef = ref(db, 'counter');
+  let count = 0;
+
+  function bump() {
+    const el = document.getElementById('num');
+    el.classList.add('bump');
+    setTimeout(() => el.classList.remove('bump'), 130);
+  }
+
+  function setDisplay(n) {
+    document.getElementById('num').textContent = n;
+    bump();
+  }
+
+  function push(n) {
+    set(counterRef, n);
+    document.getElementById('status').textContent = 'Saved ✓';
+    setTimeout(() => document.getElementById('status').textContent = 'Live ✦', 1500);
+  }
+
+  document.getElementById('btnPlus').onclick  = () => { count++; setDisplay(count); push(count); };
+  document.getElementById('btnMinus').onclick = () => { if (count > 0) count--; setDisplay(count); push(count); };
+  document.getElementById('btnReset').onclick = () => { count = 0; setDisplay(0); push(0); };
+
+  onValue(counterRef, (snapshot) => {
+    const val = snapshot.val();
+    if (val !== null) { count = val; setDisplay(count); }
+    document.getElementById('status').textContent = 'Live ✦';
+  });
+</script>
+</body>
+</html>
